@@ -35,7 +35,12 @@ function itemCtx(it, i){
 function globalCtx(){
   const c = {총건수:S.items.length, 유형수:S.groups.length};
   S.meta.forEach(m => { if(m.k.trim() && m.v.trim()) c[m.k.trim()] = m.v; });
-  return c;
+  return Object.assign(c, infoValues());
+}
+/* {{#각유형}} 블록 안이면 그 유형의 안건만, 밖이면 전체 안건 — {{#안건}}과 {{건수:열=값}}이 같이 쓴다 */
+function scopeItems(ctx){
+  for(let i = ctx.length - 1; i >= 0; i--) if(ctx[i].__g) return ctx[i].__g.items;
+  return S.items;
 }
 function lookup(name, ctx){
   let mm;
@@ -45,6 +50,13 @@ function lookup(name, ctx){
       return v === undefined ? undefined : v;
     }
     return undefined;
+  }
+  /* {{건수:열이름=값}} {{번호목록:열이름=값}} — 유형 열이 아닌 다른 열의 특정 값 개수/번호목록 */
+  if((mm = name.match(/^(건수|번호목록)\s*:\s*([^=:]+)=(.*)$/))){
+    const col = mm[2].trim(), want = mm[3].trim();
+    if(!S.headers.includes(col)) return undefined;
+    const items = scopeItems(ctx).filter(it => (it.cols[col] || '').trim() === want);
+    return mm[1] === '건수' ? String(items.length) : fmtNos(items);
   }
   if((mm = name.match(/^(건수|번호목록)\s*:\s*(.+)$/))){
     const g = findGroup(mm[2].trim());
@@ -67,9 +79,7 @@ function render(nodes, ctx, un){
     if(name === '각유형'){
       S.groups.forEach((g, i) => { out += render(n.c, ctx.concat(groupCtx(g, i)), un); });
     }else if(name === '안건'){
-      let src = S.items;
-      for(let i = ctx.length - 1; i >= 0; i--) if(ctx[i].__g){ src = ctx[i].__g.items; break; }
-      src.forEach((it, i) => { out += render(n.c, ctx.concat(itemCtx(it, i)), un); });
+      scopeItems(ctx).forEach((it, i) => { out += render(n.c, ctx.concat(itemCtx(it, i)), un); });
     }else if(/^유형\s*=/.test(name)){
       const g = findGroup(name.replace(/^유형\s*=\s*/, '').trim());
       if(g && g.items.length) out += render(n.c, ctx.concat(groupCtx(g, S.groups.indexOf(g))), un);

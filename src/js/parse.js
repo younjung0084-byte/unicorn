@@ -3,24 +3,30 @@
 async function loadFile(file){
   hideErr();
   try{
-    S.buf = await file.arrayBuffer();
-    const wb = XLSX.read(S.buf, {type:'array'});
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});   // 읽기에 실패하면 여기서 끝나고, 이미 등록된 파일 상태는 그대로 남는다
+    S.buf = buf;
     S.fileName = file.name;
     S.sheetNames = wb.SheetNames.slice();
     S.order = []; S.labels = {};
-    loadSheet(S.sheetNames[0]);
+    const name = findRosterSheet(S.sheetNames);   // 읽는 시트는 항상 간사용명부
+    if(name) loadSheet(name); else { S.sheet = ''; setRows([]); }
+    buildRoster();
+    renderRoster();
+    return true;
   }catch(e){
     showErr('파일을 읽지 못했습니다. 손상되었거나 지원하지 않는 형식일 수 있습니다. (' + (e && e.message || e) + ')');
+    return false;
   }
 }
 
-function loadSheet(name){
-  S.sheet = name;
+/* 시트 하나를 "행 × 열 글자" 표로 읽는다. 배열 번호 i 는 엑셀의 i+1 행과 같다. */
+function sheetRows(name){
   const wb = XLSX.read(S.buf, {type:'array'});
   const ws = wb.Sheets[name];
-  if(!ws || !ws['!ref']){ setRows([]); return; }
+  if(!ws || !ws['!ref']) return [];
   const rg = XLSX.utils.decode_range(ws['!ref']);
-  if(S.fmt.fill && ws['!merges']){
+  if(ws['!merges']){   // 병합된 칸은 합쳐진 모든 줄에 같은 값이 들어 있는 것으로 읽는다
     for(const m of ws['!merges']){
       const tl = ws[XLSX.utils.encode_cell(m.s)];
       if(!tl) continue;
@@ -32,7 +38,12 @@ function loadSheet(name){
   }
   ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:rg.e});
   const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false, blankrows:true});
-  setRows(aoa.map(r => r.map(v => String(v).trim())));
+  return aoa.map(r => r.map(v => String(v).trim()));
+}
+
+function loadSheet(name){
+  S.sheet = name;
+  setRows(sheetRows(name));
 }
 
 function setRows(rows){
@@ -82,15 +93,11 @@ function guessMap(){
 }
 
 function analyze(){
-  const m = S.map, items = [], seen = new Set();
-  S.skipNo = 0; S.skipDup = 0;
+  const m = S.map, items = [];
+  S.skipNo = 0;
   S.data.forEach(d => {
     const no = m.no ? d.cols[m.no] : String(items.length + 1);
     if(m.no && !no){ S.skipNo++; return; }
-    if(S.fmt.dedupe && m.no){
-      if(seen.has(no)){ S.skipDup++; return; }
-      seen.add(no);
-    }
     items.push({
       no, title: m.title ? d.cols[m.title] : '',
       type: m.type ? (d.cols[m.type] || '(미분류)') : '(전체)',

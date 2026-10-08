@@ -8,7 +8,7 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $read = { param($p) [IO.File]::ReadAllText("$root\src\$p", $utf8) }
 
-$order = 'core', 'parse', 'template', 'docx', 'ui', 'fx', 'main'
+$order = 'core', 'parse', 'roster', 'template', 'docx', 'ui', 'fx', 'main'
 $js = ($order | ForEach-Object { & $read "js\$_.js" }) -join "`n"
 
 $html = & $read 'index.src.html'

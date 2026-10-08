@@ -2,6 +2,7 @@
 restore();
 $('#tpl').value = S.template;
 renderMeta();
+renderInfo();
 renderDocOpts();
 bind();
 refreshAll();

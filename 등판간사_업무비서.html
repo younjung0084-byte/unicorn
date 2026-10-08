@@ -51,7 +51,7 @@ body{
 .fx-toggle:disabled{opacity:1;cursor:default;background:var(--surface);color:var(--muted)}
 
 /* cards */
-main{padding:24px 0 56px;display:grid;gap:18px}
+main{padding:24px 0 56px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 24px}
 .card h2{margin:0 0 4px;font-size:1.1rem;display:flex;align-items:center;gap:10px;color:var(--lav-700)}
 .card h2 .num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;
@@ -61,7 +61,7 @@ h3{margin:22px 0 8px;font-size:.95rem;color:var(--ink)}
 
 /* form controls */
 label.f{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px}
-input[type=text],input[type=number],select,textarea{
+input[type=text],input[type=number],input[type=date],select,textarea{
   width:100%;font:inherit;color:var(--ink);background:var(--surface);
   border:1px solid var(--lav-300);border-radius:6px;padding:7px 10px;
 }
@@ -82,14 +82,115 @@ button:disabled{opacity:.45;cursor:default}
 .check{display:flex;align-items:center;gap:6px;font-size:.9rem}
 .check input{accent-color:var(--lav-600)}
 
+/* 심의안건 등록하기: 제목 옆 배지와 파일 이름 */
+.reg-head{flex-wrap:wrap}
+.file-badge{padding:3px 12px;font-size:.8rem;font-weight:400;border-radius:999px;background:var(--lav-100);border-color:var(--lav-300);color:var(--lav-700)}
+.file-badge:hover{background:var(--lav-300);color:var(--ink)}
+.file-chip{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.9rem;font-weight:400;color:var(--muted)}
+
+/* 파일 변경 창 */
+.modal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(58,48,80,.38)}
+.modal-box{width:min(520px,100%);max-height:100%;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.modal-head h3{margin:0;font-size:1.05rem;color:var(--lav-700)}
+.modal-x{width:32px;height:32px;padding:0;font-size:1.3rem;line-height:1}
+
+/* 간사용명부: 심의사유별 안건 현황 */
+.roster{margin-top:14px}
+.roster h3{margin-top:0;font-size:1.02rem}
+.roster .count{font-size:1rem;min-width:46px}
+/* 건수 칸: 막대(상대 크기) + 숫자. 막대 칸 너비는 모든 줄이 같아서 한 줄로 비교할 수 있다 */
+.roster-table td,.roster-table th{padding:10px 14px}
+.roster-table th.cnt,.roster-table td.cnt{width:1%;white-space:nowrap}
+.bar{display:inline-block;width:clamp(60px,26vw,200px);height:8px;margin-right:12px;vertical-align:middle;background:var(--lav-100);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lav-300)}
+.roster tr.bad .bar i{background:var(--warn-line)}
+/* 요약 문장(표지 미리보기와 같은 너비의 칸) */
+.sum-paper{background:#fff;border:1px solid var(--lav-300);padding:16px 18px;font-size:.95rem;line-height:1.85;color:var(--ink)}
+.sum-paper p{margin:0}
+.sum-paper p + p{margin-top:12px;padding-top:12px;border-top:1px solid var(--lav-100);font-size:1.05rem;font-weight:700}
+.sum-paper b{color:var(--pink-700)}
+.sum-paper{word-break:keep-all}
+.nw{white-space:nowrap}
+.roster tr.sum td{font-weight:700;background:var(--lav-50)}
+.roster tr.bad td{background:var(--warn-bg);color:var(--warn-ink)}
+/* 요약 아래 알림: 노란색은 사람이 확인할 것, 회색은 참고 */
+.roster-alerts{display:grid;gap:6px;margin-top:10px;font-size:.85rem}
+.roster-alerts .alert{padding:8px 12px;border-radius:6px;line-height:1.5}
+.roster-alerts .alert.warn{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink)}
+.roster-alerts .alert.info{color:var(--muted);padding:0 2px}
+.roster-info{margin-bottom:10px;font-size:.85rem;color:var(--muted)}
+details.fold{margin-top:4px}
+/* 심의사유 줄: 누르면 안건 목록이 펼쳐진다 */
+.roster tr.cat{cursor:pointer}
+.roster tr.cat:hover td{background:var(--lav-50)}
+.roster tr.cat.bad:hover td{background:var(--warn-bg)}
+.cat-btn{display:flex;align-items:center;gap:8px;width:100%;padding:0;border:0;background:none;color:inherit;text-align:left}
+.cat-btn:hover{background:none}
+.cat-btn::before{content:"▸";color:var(--lav-600);width:1em}
+.cat-btn[aria-expanded="true"]::before{content:"▾"}
+.cat-btn:disabled{opacity:1;cursor:default;color:var(--muted)}
+.cat-btn:disabled::before{color:var(--lav-300)}
+tr.cat:has(.cat-btn:disabled){cursor:default}
+.roster tr.cat-list > td{padding:8px 12px 14px 34px;background:var(--lav-50)}
+.roster tr.cat-list .empty{padding:2px 0}
+.roster tr.warnrow td{background:#fffbea}
+.warn-text{margin-top:2px;color:var(--warn-ink)}
+.tbl-sm{font-size:.82rem}
+.tbl-sm th,.tbl-sm td{padding:5px 8px}
+.tbl-sm td.wrap{white-space:pre-wrap;word-break:keep-all}
+.tbl-wrap.tall{max-height:380px;overflow:auto}
+
+/* 회의 정보 카드 */
+.card h2 + .info-grid{margin-top:16px}
+.info-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px 40px;align-items:start}
+.field-pair{display:flex;flex-wrap:wrap;gap:22px 36px}
+.info-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+.date-row{display:flex;align-items:center;gap:8px}
+.date-row #infoDate{width:10.5rem}
+.cal-wrap{position:relative;display:inline-flex}
+.cal-btn{width:40px;height:40px;padding:0;display:inline-grid;place-items:center}
+.cal-btn svg{width:20px;height:20px}
+/* 달력 팝업을 띄우기 위한 보이지 않는 날짜 칸. 버튼 바로 밑에 겹쳐 둔다 */
+#infoDatePick{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;pointer-events:none;border:0;padding:0}
+.field-hint{min-height:1.3em;margin-top:4px;font-size:.82rem;color:var(--pink-700)}
+input[aria-invalid="true"]{border-color:var(--pink-300);background:var(--pink-50)}
+.name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.name-row input[type=text]{width:9.5rem}
+.name-row #infoRound{width:4.5rem;text-align:center}
+.name-tail{white-space:nowrap}
+.seg{display:inline-flex}
+.seg button{border-radius:0;margin-left:-1px;min-width:44px}
+.seg button:first-child{border-radius:6px 0 0 6px;margin-left:0}
+.seg button:last-child{border-radius:0 6px 6px 0}
+.seg button[aria-pressed="true"]{background:var(--lav-600);border-color:var(--lav-600);color:#fff;position:relative;z-index:1}
+/* 표지 미리보기: 입력칸 묶음과 비슷한 높이가 되도록 가로로 낮은 8:5 비율. 글자 크기는 폭에 비례해서 줄어든다 */
+.cover-side{width:100%;max-width:340px;justify-self:end}
+.cover-cap{font-size:.82rem;color:var(--muted);margin-bottom:4px}
+.cover-stage{background:var(--lav-50);border:1px solid var(--lav-100);border-radius:8px;padding:14px}
+.cover{position:relative;container-type:inline-size;aspect-ratio:8/5;background:#fff;border:1px solid var(--lav-300)}
+.cover-in{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;padding:12cqw 8cqw 14cqw}
+/* 제목은 한 줄 고정. 지역명이 길어 넘치면 JS가 --t(글자 크기, cqw 단위 숫자)를 줄인다 */
+.cover-title{--t:5.8;font-size:1rem;font-size:calc(var(--t) * 1cqw);font-weight:700;line-height:1.5;color:var(--ink);
+  white-space:nowrap;max-width:100%}
+.cover-gap{height:1.6rem;height:8.7cqw}   /* 제목 한 줄 높이만큼 비움 */
+.cover-date{font-size:.9rem;font-size:4.4cqw;color:var(--ink)}
+.cover-head{position:absolute;top:6cqw;left:8cqw;font-size:.7rem;font-size:3.4cqw;color:var(--muted)}
+.cover-foot{position:absolute;left:0;right:0;bottom:7cqw;text-align:center;font-size:.9rem;font-size:4.6cqw;color:var(--ink)}
+.cover .ph{color:#b9afcc;font-weight:400}
+.cover-note{margin-top:8px;font-size:.82rem;color:var(--muted)}
+
 /* drop zone */
 .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
   padding:26px 16px;border:1.5px dashed var(--lav-300);border-radius:8px;background:var(--lav-50);cursor:pointer}
 .drop:hover,.drop.over{background:var(--pink-50);border-color:var(--pink-300)}
-.drop strong{color:var(--lav-700)}
+.drop strong{color:var(--lav-700);word-break:break-all}
 .drop span{color:var(--muted);font-size:.85rem}
-.file-info{margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
-.file-name{font-weight:600;color:var(--lav-700)}
+/* 파일이 등록된 뒤: 파일 이름을 크게, 칸은 실선·분홍으로 바뀐다 */
+.drop small{color:var(--pink-700);font-size:.78rem;font-weight:700}
+.drop.has-file{background:var(--pink-50);border-style:solid;border-color:var(--pink-300)}
+.drop.has-file strong{font-size:1.15rem}
 
 /* tables */
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
@@ -142,8 +243,16 @@ details .body{margin-top:10px}
 /* 마우스 별가루 */
 .spark{position:fixed;pointer-events:none;z-index:9999;line-height:1;user-select:none}
 
+@media (max-width:560px){
+  /* 폰 폭: 막대를 숨겨서 심의사유 이름이 한 줄로 보이게 한다 */
+  .bar{display:none}
+  .roster-table td,.roster-table th{padding:10px 10px}
+  .roster-table .cat-btn{word-break:keep-all}
+}
 @media (max-width:820px){
   .grid3{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:minmax(0,1fr)}
+  .cover-side{justify-self:start;max-width:420px}   /* 한 줄로 쌓일 때는 왼쪽에 붙여서 허전하게 비지 않게 */
   .editor{grid-template-columns:1fr}
   .top-right{margin-left:0}
   .card{padding:18px 16px}
@@ -171,36 +280,136 @@ details .body{margin-top:10px}
 
 <main class="wrap">
 
-  <!-- 1. 업로드 -->
+  <!-- 1. 회의 정보 -->
+  <section class="card" id="sInfo">
+    <h2><span class="num">1</span>회의 정보 입력하기</h2>
+
+    <div class="info-grid">
+      <div class="info-fields">
+        <div>
+          <label class="f" for="infoRegion">위원회 명칭</label>
+          <div class="name-row">
+            <input type="text" id="infoRegion" maxlength="20" placeholder="지역명 (예: 영등포)" autocomplete="off">
+            <div class="seg" id="infoLevel" role="group" aria-label="시·군·구 선택">
+              <button type="button" data-level="시" aria-pressed="false">시</button>
+              <button type="button" data-level="군" aria-pressed="false">군</button>
+              <button type="button" data-level="구" aria-pressed="false">구</button>
+            </div>
+            <span class="name-tail">등급판정위원회</span>
+          </div>
+        </div>
+        <div class="field-pair">
+        <div>
+          <label class="f" for="infoRound">차수</label>
+          <div class="name-row">
+            <input type="text" id="infoRound" inputmode="numeric" placeholder="예: 3" autocomplete="off">
+            <span class="name-tail">차</span>
+          </div>
+        </div>
+        <div>
+          <label class="f" for="infoDate">개최일자 (숫자 8자리 또는 달력)</label>
+          <div class="date-row">
+            <input type="text" id="infoDate" inputmode="numeric" placeholder="예: 20261008" autocomplete="off">
+            <span class="cal-wrap">
+              <button type="button" class="cal-btn" id="infoCal" aria-label="달력에서 날짜 선택" title="달력에서 선택">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+              </button>
+              <input type="date" id="infoDatePick" min="1900-01-01" max="2100-12-31" tabindex="-1" aria-hidden="true">
+            </span>
+          </div>
+          <div class="field-hint" id="infoDateHint" role="status"></div>
+        </div>
+        </div>
+      </div>
+
+      <div class="cover-side">
+        <div class="cover-cap">표지 미리보기</div>
+        <div class="cover-stage">
+          <div class="cover">
+            <div class="cover-head">&lt;회의 시나리오&gt;</div>
+            <div class="cover-in">
+              <div class="cover-title" id="coverTitle"></div>
+              <div class="cover-gap"></div>
+              <div class="cover-date" id="coverDate"></div>
+            </div>
+            <div class="cover-foot" id="coverFoot"></div>
+          </div>
+        </div>
+        <div class="cover-note" id="coverNote"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 심의안건 등록 -->
   <section class="card" id="s1">
-    <h2><span class="num">1</span>엑셀 파일 불러오기</h2>
-    <p class="sub">.xlsx / .xls / .csv 파일을 선택하거나 아래 영역으로 끌어다 놓으세요. 파일은 서버로 전송되지 않습니다.</p>
+    <h2 class="reg-head">
+      <span class="num">2</span><span>심의안건 등록하기</span>
+      <button type="button" class="file-badge" id="fileBadge" hidden title="다른 엑셀 파일로 바꾸기">파일 변경</button>
+      <span class="file-chip" id="fileChip" hidden></span>
+    </h2>
+    <p class="sub" id="regSub">심의안건이 담긴 엑셀 파일(.xlsx / .xls / .csv)을 선택하거나 아래 영역으로 끌어다 놓으세요. ‘간사용명부’ 시트를 읽어 심의사유별 건수를 바로 보여드립니다. 파일은 이 PC 안에서만 처리되며 서버로 전송되지 않습니다.</p>
 
-    <label class="drop" id="drop" for="file">
-      <strong>클릭하여 파일 선택</strong>
-      <span>또는 여기로 파일을 끌어다 놓기</span>
-    </label>
-    <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv" hidden>
-
-    <div class="row" style="margin-top:12px">
-      <button type="button" id="sample">샘플 데이터로 먼저 살펴보기</button>
+    <!-- 파일이 없을 때는 여기, 파일을 등록한 뒤에는 ‘파일 변경’ 창 안에 이 칸이 들어간다 -->
+    <div id="dropHome">
+      <div id="dropWrap">
+        <label class="drop" id="drop" for="file" tabindex="0" role="button">
+          <small id="dropTag" hidden>현재 등록된 파일</small>
+          <strong id="dropTitle">클릭하여 파일 선택</strong>
+          <span id="dropSub">또는 여기로 파일을 끌어다 놓기</span>
+        </label>
+        <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+      </div>
     </div>
 
-    <div id="fileInfo" class="file-info" hidden>
-      <div><label class="f">불러온 파일</label><div class="file-name" id="fileName"></div></div>
-      <div id="sheetBox"><label class="f" for="sheet">시트</label><select id="sheet" style="min-width:160px"></select></div>
-      <div><label class="f" for="hrow">제목 행 번호</label><input type="number" id="hrow" min="1" value="1"></div>
-      <label class="check"><input type="checkbox" id="optFill" checked>병합된 셀은 값을 채워서 읽기</label>
-      <label class="check"><input type="checkbox" id="optDedupe" checked>같은 안건번호는 1건으로 계산</label>
-    </div>
     <div id="loadErr" class="err" hidden></div>
+
+    <!-- 간사용명부: 심의사유별 안건 현황 -->
+    <div id="rosterErr" class="err" hidden></div>
+    <div id="rosterBox" class="roster" hidden>
+      <div class="info-grid">
+        <div class="roster-main">
+          <h3>심의사유별 안건 현황</h3>
+          <div class="tbl-wrap">
+            <table class="roster-table">
+              <thead><tr><th>심의사유</th><th class="num cnt">건수</th></tr></thead>
+              <tbody id="rosterBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 표지 미리보기와 같은 너비의 칸: 시나리오에 들어갈 요약 문장과 확인할 점 -->
+        <div class="cover-side">
+          <div class="cover-cap">심의안건 요약</div>
+          <div class="cover-stage">
+            <div class="sum-paper" id="rosterSummary"></div>
+          </div>
+          <div class="roster-alerts" id="rosterAlerts"></div>
+        </div>
+      </div>
+
+      <details id="rosterDetailBox">
+        <summary>건별 분류 내역 보기</summary>
+        <div class="body">
+          <div class="roster-info" id="rosterInfo"></div>
+          <label class="check" style="margin-bottom:8px"><input type="checkbox" id="rosterOnlyBad">분류 안 됨 · 확인 필요한 건만 보기</label>
+          <div class="tbl-wrap tall">
+            <table class="tbl-sm">
+              <thead id="rosterDetailHead"></thead>
+              <tbody id="rosterDetail"></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+    </div>
   </section>
 
   <!-- 2. 열 지정 / 분석 -->
   <section class="card" id="s2" hidden>
-    <h2><span class="num">2</span>열 지정과 분석 결과</h2>
-    <p class="sub">엑셀의 어떤 열이 안건번호·유형인지 지정하면 유형별 건수와 안건번호를 자동으로 정리합니다.</p>
+    <h2><span class="num">3</span>열 지정과 분석 결과</h2>
+    <p class="sub">시나리오 틀에서 쓰는 예전 방식의 집계입니다. 시나리오 틀을 정리할 때 위의 심의사유 분류와 연결할 예정이라 지금은 접어 두었습니다.</p>
 
+    <details class="fold">
+    <summary>열 지정과 집계 결과 펼쳐보기</summary>
     <div class="grid3">
       <div><label class="f" for="mapNo">안건번호 열</label><select id="mapNo"></select></div>
       <div><label class="f" for="mapTitle">안건명 열</label><select id="mapTitle"></select></div>
@@ -233,11 +442,12 @@ details .body{margin-top:10px}
       <summary>엑셀 원본 미리보기 (상위 15행)</summary>
       <div class="body tbl-wrap"><table id="preview"></table></div>
     </details>
+    </details>
   </section>
 
   <!-- 3. 틀 -->
   <section class="card" id="s3">
-    <h2><span class="num">3</span>회의 정보와 시나리오 틀</h2>
+    <h2><span class="num">4</span>시나리오 틀과 추가 정보</h2>
     <p class="sub">틀에 <code style="background:var(--lav-50);padding:0 5px;border-radius:4px">{{항목}}</code> 형태로 자리를 만들어 두면, 엑셀 내용에 맞춰 자동으로 채워집니다. 오른쪽 버튼을 누르면 커서 위치에 삽입됩니다.</p>
 
     <div class="editor">
@@ -275,10 +485,12 @@ details .body{margin-top:10px}
       <summary>틀 작성 규칙 보기</summary>
       <div class="body help">
         <ul>
-          <li><code>{{총건수}}</code> <code>{{유형수}}</code> 와 회의 정보 항목(<code>{{회의명}}</code> 등)은 어디서나 사용할 수 있습니다.</li>
+          <li><code>{{총건수}}</code> <code>{{유형수}}</code> 와 추가 정보 항목(<code>{{장소}}</code> 등)은 어디서나 사용할 수 있습니다.</li>
+          <li>1번 카드에 입력한 값: <code>{{위원회명}}</code>(예: 영등포구 등급판정위원회) <code>{{지역}}</code>(영등포구) <code>{{차수}}</code> <code>{{개최일자}}</code>(2026년 10월 8일) <code>{{개최년}}</code> <code>{{개최월}}</code> <code>{{개최일}}</code> <code>{{개최요일}}</code>. 입력하지 않은 값은 결과에 그대로 남고 경고가 표시됩니다.</li>
           <li><code>{{#각유형}} … {{/각유형}}</code> 안의 내용은 유형마다 한 번씩 반복됩니다. 안에서 <code>{{유형}}</code> <code>{{건수}}</code> <code>{{번호목록}}</code> <code>{{순번}}</code> <code>{{가나다}}</code> 를 쓸 수 있습니다.</li>
           <li><code>{{#안건}} … {{/안건}}</code> 은 안건 한 건씩 반복됩니다. 유형 반복 안에 넣으면 그 유형의 안건만, 밖에 두면 전체 안건이 대상입니다. <code>{{번호}}</code> <code>{{안건명}}</code> <code>{{열:열이름}}</code> 을 쓸 수 있습니다.</li>
           <li><code>{{건수:유형명}}</code> <code>{{번호목록:유형명}}</code> 은 특정 유형의 값을 바로 꺼내 씁니다.</li>
+          <li><code>{{건수:열이름=값}}</code> <code>{{번호목록:열이름=값}}</code> 은 유형 열이 아닌 다른 열에서 특정 값을 가진 안건의 개수·번호목록입니다. 유형 반복 안에 두면 그 유형 안에서만 셉니다. 열이름은 엑셀 머리글과 똑같이 씁니다.</li>
           <li><code>{{#유형=유형명}} … {{/유형}}</code> 은 해당 유형의 안건이 1건 이상 있을 때만 출력됩니다. 없으면 문단 전체가 빠집니다.</li>
           <li><code>{{#…}}</code> 나 <code>{{/…}}</code> 만 있는 줄은 빈 줄이 남지 않도록 자동으로 정리됩니다.</li>
         </ul>
@@ -288,7 +500,7 @@ details .body{margin-top:10px}
 
   <!-- 4. 결과 -->
   <section class="card" id="s4">
-    <h2><span class="num">4</span>완성된 시나리오</h2>
+    <h2><span class="num">5</span>완성된 시나리오</h2>
     <div id="outEmpty" class="empty">엑셀 파일을 불러오면 이곳에 시나리오가 만들어집니다.</div>
     <div id="outBox" hidden>
       <div class="out-actions">
@@ -316,6 +528,19 @@ details .body{margin-top:10px}
 
 </main>
 
+
+<!-- 파일 변경 창: 파일을 등록한 뒤에는 여기서 새 파일을 올린다 -->
+<div class="modal" id="uploadModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+    <div class="modal-head">
+      <h3 id="uploadModalTitle">파일 변경</h3>
+      <button type="button" class="modal-x" id="modalClose" aria-label="닫기">×</button>
+    </div>
+    <p class="help" style="margin:0 0 12px">새 엑셀 파일(.xlsx / .xls / .csv)을 끌어다 놓거나 눌러서 선택하세요. 지금 등록된 파일은 새 파일로 바뀝니다. 파일은 이 PC 안에서만 처리됩니다.</p>
+    <div id="modalDropSlot"></div>
+    <div id="modalErr" class="err" hidden></div>
+  </div>
+</div>
 
 <script>
 /*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
@@ -351,14 +576,14 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 const GANADA = '가나다라마바사아자차카타파하';
 const KEY = 'deungpan-unicorn-v1';
 
-const DEFAULT_TEMPLATE = `{{회의명}} 제{{회차}}회 회의 진행 시나리오
+const DEFAULT_TEMPLATE = `{{위원회명}} 제{{차수}}차 회의 진행 시나리오
 
-■ 일시: {{일시}}
+■ 개최일자: {{개최일자}}
 ■ 장소: {{장소}}
 ■ 진행: {{위원장}}
 
 1. 개회
-  ○ 지금부터 {{회의명}} 제{{회차}}회 회의를 개회하겠습니다.
+  ○ 지금부터 {{위원회명}} 제{{차수}}차 회의를 개회하겠습니다.
 
 2. 안건 상정 안내
   ○ 오늘 심의할 안건은 모두 {{총건수}}건이며, 유형별로는 다음과 같습니다.
@@ -384,20 +609,54 @@ const S = {
   rows: [], headerRow: 1, headers: [], data: [],
   map: {no:'', title:'', type:''},
   items: [], groups: [], order: [], labels: {},
-  skipNo: 0, skipDup: 0,
+  skipNo: 0,
+  roster: null, rosterOnlyBad: false, rosterOpen: new Set(),   // 간사용명부 심의사유 분류 결과(roster.js)와 상세표 필터
   template: DEFAULT_TEMPLATE,
-  meta: [{k:'회의명',v:'심의위원회'},{k:'회차',v:''},{k:'일시',v:''},{k:'장소',v:''},{k:'위원장',v:''}],
-  fmt: {prefix:'제', suffix:'호', sep:', ', range:true, dedupe:true, fill:true},
+  meta: [{k:'장소',v:''},{k:'위원장',v:''}],
+  info: {region:'', level:'', round:'', date:''},   // 1번 카드: 지역명, 시/군/구, 차수, 개최일자(YYYY-MM-DD)
+  fmt: {prefix:'제', suffix:'호', sep:', ', range:true},
   doc: {font:'맑은 고딕', size:10.5, pageNo:true}
 };
 
+/* ---------- 1번 카드(회의 정보) → 틀에서 쓰는 값 ---------- */
+const WEEKDAYS = '일월화수목금토';
+/* 값이 비어 있는 항목은 아예 넣지 않는다 → 틀에 자리표시가 그대로 남고 경고가 뜬다 */
+function infoValues(){
+  const i = S.info, v = {};
+  const region = i.region.trim();
+  if(region){
+    v.지역 = region + i.level;
+    v.위원회명 = v.지역 + ' 등급판정위원회';
+  }
+  const n = parseInt(i.round, 10);
+  if(n > 0) v.차수 = String(n);
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(i.date);
+  if(m){
+    const y = +m[1], mo = +m[2], d = +m[3], dt = new Date(y, mo - 1, d);
+    if(dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d){
+      v.개최년 = String(y); v.개최월 = String(mo); v.개최일 = String(d);
+      v.개최요일 = WEEKDAYS[dt.getDay()];
+      v.개최일자 = `${y}년 ${mo}월 ${d}일`;   // 요일은 {{개최요일}}로 따로 쓴다
+    }
+  }
+  return v;
+}
+
 /* ---------- 설정 저장/복원 ---------- */
-function pack(){ return {template:S.template, meta:S.meta, fmt:S.fmt, doc:S.doc}; }
+/* 차수와 개최일자는 회의마다 바뀌므로 저장하지 않는다(지난 회의 날짜가 남아 문서에 찍히는 사고 방지) */
+function pack(){ return {template:S.template, meta:S.meta, info:{region:S.info.region, level:S.info.level}, fmt:S.fmt, doc:S.doc}; }
 function applySettings(j){
   if(!j || typeof j !== 'object') return;
   if(typeof j.template === 'string') S.template = j.template;
+  if(j.info && typeof j.info === 'object'){
+    if(typeof j.info.region === 'string') S.info.region = j.info.region;
+    if(['시','군','구',''].includes(j.info.level)) S.info.level = j.info.level;
+  }
   if(Array.isArray(j.meta)) S.meta = j.meta.filter(m => m && typeof m.k === 'string').map(m => ({k:m.k, v:String(m.v == null ? '' : m.v)}));
-  if(j.fmt && typeof j.fmt === 'object') Object.assign(S.fmt, j.fmt);
+  if(j.fmt && typeof j.fmt === 'object'){   // 예전에 저장된 값에 지금은 없는 항목이 섞여 있어도 무시한다
+    ['prefix', 'suffix', 'sep'].forEach(k => { if(typeof j.fmt[k] === 'string') S.fmt[k] = j.fmt[k]; });
+    if(typeof j.fmt.range === 'boolean') S.fmt.range = j.fmt.range;
+  }
   if(j.doc && typeof j.doc === 'object') Object.assign(S.doc, j.doc);
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(pack())); }catch(e){} }
@@ -408,24 +667,30 @@ function restore(){ try{ applySettings(JSON.parse(localStorage.getItem(KEY) || '
 async function loadFile(file){
   hideErr();
   try{
-    S.buf = await file.arrayBuffer();
-    const wb = XLSX.read(S.buf, {type:'array'});
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});   // 읽기에 실패하면 여기서 끝나고, 이미 등록된 파일 상태는 그대로 남는다
+    S.buf = buf;
     S.fileName = file.name;
     S.sheetNames = wb.SheetNames.slice();
     S.order = []; S.labels = {};
-    loadSheet(S.sheetNames[0]);
+    const name = findRosterSheet(S.sheetNames);   // 읽는 시트는 항상 간사용명부
+    if(name) loadSheet(name); else { S.sheet = ''; setRows([]); }
+    buildRoster();
+    renderRoster();
+    return true;
   }catch(e){
     showErr('파일을 읽지 못했습니다. 손상되었거나 지원하지 않는 형식일 수 있습니다. (' + (e && e.message || e) + ')');
+    return false;
   }
 }
 
-function loadSheet(name){
-  S.sheet = name;
+/* 시트 하나를 "행 × 열 글자" 표로 읽는다. 배열 번호 i 는 엑셀의 i+1 행과 같다. */
+function sheetRows(name){
   const wb = XLSX.read(S.buf, {type:'array'});
   const ws = wb.Sheets[name];
-  if(!ws || !ws['!ref']){ setRows([]); return; }
+  if(!ws || !ws['!ref']) return [];
   const rg = XLSX.utils.decode_range(ws['!ref']);
-  if(S.fmt.fill && ws['!merges']){
+  if(ws['!merges']){   // 병합된 칸은 합쳐진 모든 줄에 같은 값이 들어 있는 것으로 읽는다
     for(const m of ws['!merges']){
       const tl = ws[XLSX.utils.encode_cell(m.s)];
       if(!tl) continue;
@@ -437,7 +702,12 @@ function loadSheet(name){
   }
   ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:rg.e});
   const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false, blankrows:true});
-  setRows(aoa.map(r => r.map(v => String(v).trim())));
+  return aoa.map(r => r.map(v => String(v).trim()));
+}
+
+function loadSheet(name){
+  S.sheet = name;
+  setRows(sheetRows(name));
 }
 
 function setRows(rows){
@@ -487,15 +757,11 @@ function guessMap(){
 }
 
 function analyze(){
-  const m = S.map, items = [], seen = new Set();
-  S.skipNo = 0; S.skipDup = 0;
+  const m = S.map, items = [];
+  S.skipNo = 0;
   S.data.forEach(d => {
     const no = m.no ? d.cols[m.no] : String(items.length + 1);
     if(m.no && !no){ S.skipNo++; return; }
-    if(S.fmt.dedupe && m.no){
-      if(seen.has(no)){ S.skipDup++; return; }
-      seen.add(no);
-    }
     items.push({
       no, title: m.title ? d.cols[m.title] : '',
       type: m.type ? (d.cols[m.type] || '(미분류)') : '(전체)',
@@ -536,6 +802,163 @@ function fmtNos(items){
   return parts.join(sep);
 }
 
+/* 간사용명부 시트: 심의사유별 안건 분류
+   - 안건 1건 = 명부의 데이터 행 1줄
+   - 의사소견서가 '각하'인 건은 심의사유 맨 끝의 '소견서제출기한연장' 문구 유무로 연장심의/각하심의를 가른다
+   - 심의사유에 '소견서제출기한연장'이 있어도 의사소견서가 '마감후제출'이면 그 문구는 무시하고 나머지 사유로 센다
+   - 나머지 사유로 세는 방법:
+       · '급여내용'이 있으면 앞이든 뒤든 급여내용변경심의
+       · 등급판정에 시설계속이 붙으면 시설계속심의, 특기사항이 붙으면 특기사항심의, 아무것도 안 붙으면 등급판정심의
+       · 그 밖에는 칸 안에서 가장 먼저 나오는 사유(노인성질환·급성기질환·등급판정 계열) 기준
+       · 65세미만노인성질환은 노인성질환, 등급판정(5등급대상자A-일반)처럼 등급판정 뒤 괄호 안은 설명이라 무시 */
+
+const ROSTER_SHEET = '간사용명부';
+const EXT_WORD = '소견서제출기한연장';
+/* 분류 이름. 화면에는 ROSTER_CATS 순서대로 보인다 */
+const CAT_OLD = '노인성질환심의', CAT_ACUTE = '급성기질환심의', CAT_BENEFIT = '급여내용변경심의';
+const CAT_FACILITY = '시설계속심의', CAT_SPECIAL = '특기사항심의', CAT_GRADE = '등급판정심의';
+const CAT_EXT = '소견서제출기한 연장심의';
+const CAT_REJECT = '각하심의';
+const ROSTER_CATS = [CAT_OLD, CAT_ACUTE, CAT_BENEFIT, CAT_FACILITY, CAT_SPECIAL, CAT_GRADE, CAT_EXT, CAT_REJECT];
+/* 심의사유 칸에서 찾는 글자(공백 없이). 명부에는 줄여 적힌 경우가 있어서(예: 급성기질환심의 → 급성기) 앞부분만으로 찾는다.
+   '노인성질환', '급성기질환심의'처럼 길게 적힌 것도 앞부분이 같으므로 함께 잡힌다. */
+const KEY_OLD = '노인성', KEY_ACUTE = '급성기', KEY_BENEFIT = '급여내용', KEY_GRADE = '등급판정', KEY_FACILITY = '시설계속', KEY_SPECIAL = '특기사항';
+/* 위 글자들. 이걸 지우고도 글자가 남으면 모르는 줄임말·메모가 섞인 것이므로 사람이 확인하도록 표시한다 */
+const KNOWN_WORDS = /급여내용변경|급여내용|65세미만|노인성질환|급성기질환|노인성|급성기|등급판정|시설계속|특기사항|소견서제출기한연장|심의|및|또는/g;
+/* '등급판정' 바로 뒤의 괄호 안(예: 등급판정(5등급대상자A-일반))은 대상자 설명이라 분류에도, 확인 필요 판단에도 쓰지 않는다 */
+const GRADE_PAREN = /(등급판정)[(（][^)）]*[)）]/g;
+const PUNCT = /[,，;；\/、·ㆍ.\-+&()\[\]]/g;
+
+const nz = s => String(s == null ? '' : s).replace(/\s+/g, '');   // 모든 공백·줄바꿈 제거
+
+function findRosterSheet(names){
+  const want = nz(ROSTER_SHEET);
+  return names.find(n => nz(n) === want) || names.find(n => nz(n).includes(want)) || '';
+}
+
+/* 한 건 분류. 분류할 수 없으면 cat 을 빈 글자로 돌려주고 why 에 이유를 적는다 */
+function classifyRoster(reason, doc){
+  const r = nz(reason), d = nz(doc);
+  const hasExt = r.includes(EXT_WORD);
+  const endsExt = hasExt && /소견서제출기한연장(심의)?$/.test(r.replace(/[,，;；/·ㆍ.)\]+&]+$/, ''));
+  const reject = d === '각하';
+  const late = d.includes('마감후제출');
+
+  if(reject){
+    if(!hasExt) return {cat: CAT_REJECT, why: "의사소견서 '각하' · 심의사유에 소견서제출기한연장 없음"};
+    if(endsExt) return {cat: CAT_EXT, why: "의사소견서 '각하' · 심의사유 맨 끝에 소견서제출기한연장"};
+    return {cat: '', why: "의사소견서는 '각하'인데 소견서제출기한연장이 심의사유 맨 끝에 있지 않음"};
+  }
+  if(hasExt && !late) return {cat: '', why: "심의사유에 소견서제출기한연장이 있는데 의사소견서가 '각하'도 '마감후제출'도 아님"};
+
+  // 심의사유 칸에서 사유 항목을 찾는다. 등급판정은 시설계속/특기사항이 함께 적혀 있으면 그 이름의 한 항목이 된다.
+  // (65세미만노인성질환처럼 앞에 붙은 65세미만은 노인성질환의 설명일 뿐이라 그대로 노인성질환으로 본다)
+  const rr = r.replace(GRADE_PAREN, '$1');
+  const at = k => rr.indexOf(k);
+  const pOld = at(KEY_OLD), pAcute = at(KEY_ACUTE), pBenefit = at(KEY_BENEFIT), pGrade = at(KEY_GRADE);
+  const subs = [{name: CAT_FACILITY, p: at(KEY_FACILITY)}, {name: CAT_SPECIAL, p: at(KEY_SPECIAL)}]
+    .filter(x => x.p >= 0).sort((a, b) => a.p - b.p);   // 둘 다 있으면 먼저 표기된 쪽
+  const items = [];
+  if(pOld >= 0) items.push({name: CAT_OLD, p: pOld});
+  if(pAcute >= 0) items.push({name: CAT_ACUTE, p: pAcute});
+  if(pBenefit >= 0) items.push({name: CAT_BENEFIT, p: pBenefit});
+  if(pGrade >= 0) items.push(subs.length ? {name: subs[0].name, p: Math.min(pGrade, subs[0].p)} : {name: CAT_GRADE, p: pGrade});
+  const orphan = pGrade < 0 && subs.length > 0;   // 시설계속/특기사항만 있고 등급판정이 같이 적혀 있지 않음
+  let first = null;
+  items.forEach(x => { if(first === null || x.p < first.p) first = x; });
+  const cat = pBenefit >= 0 ? CAT_BENEFIT : (first ? first.name : '');   // 급여내용은 위치와 상관없이 우선
+
+  if(!cat){
+    if(orphan) return {cat: '', why: `‘${subs[0].name.replace('심의', '')}’만 적혀 있고 등급판정이 함께 적혀 있지 않음`};
+    return {cat: '', why: r ? '심의사유에서 분류할 항목을 찾지 못함' : '심의사유가 비어 있음'};
+  }
+  const parts = [];
+  if(hasExt && late) parts.push("'마감후제출'이라 소견서제출기한연장은 무시");
+  if(pBenefit >= 0 && items.length > 1) parts.push("‘급여내용’이 있어 위치와 상관없이 급여내용변경심의");
+  else parts.push(items.length > 1 ? `사유 ${items.length}개 중 먼저 표기된 것` : '사유 1개');
+  if(pGrade >= 0 && subs.length) parts.push(`등급판정+${subs[0].name.replace('심의', '')}` + (subs.length > 1 ? ' (시설계속·특기사항 중 먼저 표기된 것)' : ''));
+  // 사람이 한 번 더 볼 건: 알아본 글자를 빼고도 글자가 남음(모르는 줄임말일 수 있음), 시설계속/특기사항이 등급판정 없이 적힘. 분류는 그대로 한다.
+  const warns = [];
+  const left = rr.replace(KNOWN_WORDS, '').replace(PUNCT, '');
+  if(left) warns.push(`인식하지 못한 글자 ‘${left.slice(0, 20)}’ 포함 · 줄임말이면 알려 주세요`);
+  if(orphan) warns.push(`‘${subs[0].name.replace('심의', '')}’이 등급판정 없이 적혀 있음`);
+  return {cat, multi: items.length > 1, why: parts.join(' · '), warn: warns.join(' / ')};
+}
+
+/* 업로드한 파일에서 간사용명부 시트를 읽어 분류한다. 결과는 S.roster */
+function buildRoster(){
+  const R = S.roster = {sheet: '', error: '', headerRow: 0, reasonHead: '', docHead: '', noHead: '', total: 0, idCount: 0, idDistinct: 0, counts: {}, bad: 0, multi: 0, warn: 0, docValues: {}, rows: []};
+  S.rosterOpen = new Set();   // 펼쳐 둔 심의사유 목록은 새 파일을 올리면 모두 접는다
+  if(!S.buf) return;
+  const name = findRosterSheet(S.sheetNames);
+  if(!name){
+    R.error = `'${ROSTER_SHEET}' 시트를 찾지 못했습니다. (이 파일의 시트: ${S.sheetNames.join(', ')})`;
+    return;
+  }
+  R.sheet = name;
+  const rows = sheetRows(name);
+
+  // 머리글 행 찾기: '심의사유' 라고 적힌 칸이 있는 첫 행 (정확히 일치하는 칸을 먼저, 없으면 글자가 들어간 칸)
+  let h = -1, rc = -1, dc = -1, nc = -1;
+  const col = (cells, word, exact) => { const e = cells.indexOf(word); return e >= 0 || exact ? e : cells.findIndex(c => c.includes(word)); };
+  search:
+  for(const exact of [true, false]){
+    for(let i = 0; i < Math.min(rows.length, 40); i++){
+      const cells = rows[i].map(nz);
+      const a = col(cells, '심의사유', exact);
+      if(a >= 0){
+        h = i; rc = a; dc = col(cells, '의사소견서', false);
+        nc = ['의안번호', '안건번호'].reduce((f, w) => f >= 0 ? f : col(cells, w, false), -1);   // 의안번호 열(없으면 안건번호)
+        break search;
+      }
+    }
+  }
+  if(h < 0){ R.error = `'${name}' 시트 위쪽 40행 안에서 머리글 '심의사유'를 찾지 못했습니다.`; return; }
+  if(dc < 0){ R.error = `'${name}' 시트의 ${h + 1}행에서 머리글 '의사소견서'를 찾지 못했습니다.`; return; }
+  R.headerRow = h + 1; R.reasonHead = rows[h][rc]; R.docHead = rows[h][dc];
+  R.noHead = nc >= 0 ? rows[h][nc] : '';
+
+  ROSTER_CATS.forEach(c => { R.counts[c] = 0; });
+  const idSet = new Set();
+  for(let i = h + 1; i < rows.length; i++){
+    const row = rows[i];
+    if(!row.some(Boolean)) continue;   // 완전히 빈 줄은 건너뜀
+    const reason = row[rc] || '', doc = row[dc] || '';
+    const c = classifyRoster(reason, doc);
+    if(nc >= 0 && row[nc]){ R.idCount++; idSet.add(row[nc]); }
+    R.rows.push({row: i + 1, no: nc >= 0 ? row[nc] || '' : '', reason, doc, cat: c.cat, why: c.why, multi: !!c.multi, warn: c.warn || ''});
+    if(c.cat) R.counts[c.cat]++; else R.bad++;
+    if(c.multi) R.multi++;
+    if(c.warn) R.warn++;
+    const dv = doc || '(비어 있음)';
+    R.docValues[dv] = (R.docValues[dv] || 0) + 1;
+  }
+  R.total = R.rows.length;
+  R.idDistinct = idSet.size;
+  // 한 줄은 정확히 한 곳에만 세므로 분류별 합(분류 안 됨 포함)은 항상 전체 건수와 같아야 한다. 어긋나면 숫자를 보여주지 않는다.
+  const sum = ROSTER_CATS.reduce((n, c) => n + R.counts[c], 0) + R.bad;
+  if(sum !== R.total) R.error = `내부 계산 오류: 분류별 합(${sum})이 전체 줄 수(${R.total})와 다릅니다. 이 파일을 개발자에게 알려 주세요.`;
+}
+
+/* 요약 문장: "노인성질환심의 00건, 급성기질환심의 00건, … / 총 0개 안건, 000개 의안입니다."
+   안건 수 = 건수가 1건 이상인 심의사유의 종류 수, 의안 수 = 의안번호의 개수(의안번호 열이 없으면 명부 줄 수).
+   회의 시나리오에도 쓸 문장이라 화면과 시나리오가 같은 값을 쓰도록 여기서 한 번만 만든다. */
+function rosterSummary(R){
+  const parts = ROSTER_CATS.filter(c => R.counts[c] > 0).map(c => ({name: c, n: R.counts[c]}));
+  const total = R.noHead ? R.idCount : R.total;
+  const notes = [];
+  if(!R.noHead) notes.push('의안번호 열을 찾지 못해 명부의 줄 수를 의안 수로 보여드립니다.');
+  else{
+    if(R.idCount !== R.total) notes.push(`의안번호가 비어 있는 ${R.total - R.idCount}줄은 의안 수에 넣지 않았습니다.`);
+    if(R.idDistinct < R.idCount) notes.push(`같은 의안번호가 여러 줄에 있습니다. (의안번호 종류 ${R.idDistinct}개)`);
+  }
+  return {
+    parts, types: parts.length, total, notes,
+    line1: parts.map(p => `${p.name} ${p.n}건`).join(', '),
+    line2: `총 ${parts.length}개 안건, ${total}개 의안입니다.`
+  };
+}
+
 /* 시나리오 틀 엔진, 조사 처리 */
 /* ---------- 틀 엔진 ---------- */
 function parseTemplate(tpl){
@@ -573,7 +996,12 @@ function itemCtx(it, i){
 function globalCtx(){
   const c = {총건수:S.items.length, 유형수:S.groups.length};
   S.meta.forEach(m => { if(m.k.trim() && m.v.trim()) c[m.k.trim()] = m.v; });
-  return c;
+  return Object.assign(c, infoValues());
+}
+/* {{#각유형}} 블록 안이면 그 유형의 안건만, 밖이면 전체 안건 — {{#안건}}과 {{건수:열=값}}이 같이 쓴다 */
+function scopeItems(ctx){
+  for(let i = ctx.length - 1; i >= 0; i--) if(ctx[i].__g) return ctx[i].__g.items;
+  return S.items;
 }
 function lookup(name, ctx){
   let mm;
@@ -583,6 +1011,13 @@ function lookup(name, ctx){
       return v === undefined ? undefined : v;
     }
     return undefined;
+  }
+  /* {{건수:열이름=값}} {{번호목록:열이름=값}} — 유형 열이 아닌 다른 열의 특정 값 개수/번호목록 */
+  if((mm = name.match(/^(건수|번호목록)\s*:\s*([^=:]+)=(.*)$/))){
+    const col = mm[2].trim(), want = mm[3].trim();
+    if(!S.headers.includes(col)) return undefined;
+    const items = scopeItems(ctx).filter(it => (it.cols[col] || '').trim() === want);
+    return mm[1] === '건수' ? String(items.length) : fmtNos(items);
   }
   if((mm = name.match(/^(건수|번호목록)\s*:\s*(.+)$/))){
     const g = findGroup(mm[2].trim());
@@ -605,9 +1040,7 @@ function render(nodes, ctx, un){
     if(name === '각유형'){
       S.groups.forEach((g, i) => { out += render(n.c, ctx.concat(groupCtx(g, i)), un); });
     }else if(name === '안건'){
-      let src = S.items;
-      for(let i = ctx.length - 1; i >= 0; i--) if(ctx[i].__g){ src = ctx[i].__g.items; break; }
-      src.forEach((it, i) => { out += render(n.c, ctx.concat(itemCtx(it, i)), un); });
+      scopeItems(ctx).forEach((it, i) => { out += render(n.c, ctx.concat(itemCtx(it, i)), un); });
     }else if(/^유형\s*=/.test(name)){
       const g = findGroup(name.replace(/^유형\s*=\s*/, '').trim());
       if(g && g.items.length) out += render(n.c, ctx.concat(groupCtx(g, S.groups.indexOf(g))), un);
@@ -862,22 +1295,58 @@ function buildDocx(text, opts){
 
 /* 화면 그리기, 복사/저장, 이벤트 */
 /* ---------- 화면 그리기 ---------- */
-function showErr(msg){ const e = $('#loadErr'); e.textContent = msg; e.hidden = false; }
-function hideErr(){ $('#loadErr').hidden = true; }
+function showErr(msg){   // 카드 안과 ‘파일 변경’ 창 안(열려 있을 때 가려지지 않도록) 양쪽에 보여준다
+  ['#loadErr', '#modalErr'].forEach(s => { const e = $(s); e.textContent = msg; e.hidden = false; });
+}
+function hideErr(){ $('#loadErr').hidden = true; $('#modalErr').hidden = true; }
 
 function refreshAll(){
   const loaded = S.rows.length > 0;
-  $('#fileInfo').hidden = !S.fileName;
   $('#s2').hidden = !loaded;
-  if(S.fileName){
-    $('#fileName').textContent = S.fileName;
-    const sb = $('#sheetBox');
-    sb.hidden = !S.buf;
-    $('#sheet').innerHTML = S.sheetNames.map(n => `<option${n === S.sheet ? ' selected' : ''}>${esc(n)}</option>`).join('');
-    $('#hrow').value = S.headerRow;
-  }
-  if(!loaded && S.fileName){ showErr('이 시트에는 읽을 수 있는 데이터가 없습니다. 다른 시트를 선택해 보세요.'); }
+  renderDrop();
+  if(!loaded && S.sheet){ showErr(`‘${S.sheet}’ 시트에 읽을 수 있는 데이터가 없습니다.`); }
   renderMapping(); renderGroups(); renderPreview(); renderChips(); renderOutput();
+}
+
+/* 파일 올리는 칸: 파일이 없으면 카드 안에, 등록한 뒤에는 ‘파일 변경’ 창 안으로 옮기고
+   제목 옆에는 배지와 파일 이름을 보여준다 */
+function renderDrop(){
+  const has = !!S.fileName;
+  $('#drop').classList.toggle('has-file', has);
+  $('#dropTag').hidden = !has;
+  $('#dropTitle').textContent = has ? S.fileName : '클릭하여 파일 선택';
+  $('#dropSub').textContent = has ? '다른 파일로 바꾸려면 클릭하거나 끌어다 놓으세요' : '또는 여기로 파일을 끌어다 놓기';
+  const slot = has ? $('#modalDropSlot') : $('#dropHome'), wrap = $('#dropWrap');
+  if(wrap.parentElement !== slot) slot.appendChild(wrap);
+  $('#regSub').hidden = has;
+  $('#fileBadge').hidden = !has;
+  const chip = $('#fileChip');
+  chip.hidden = !has;
+  chip.textContent = S.fileName;
+  chip.title = S.fileName;
+}
+
+/* ‘파일 변경’ 창 */
+let modalReturn = null;
+function openModal(){
+  const m = $('#uploadModal');
+  if(!m.hidden) return;
+  modalReturn = document.activeElement;
+  m.hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#modalErr').hidden = true;
+  $('#drop').focus();
+}
+function closeModal(){
+  const m = $('#uploadModal');
+  if(m.hidden) return;
+  m.hidden = true;
+  document.body.style.overflow = '';
+  if(modalReturn && document.body.contains(modalReturn)) modalReturn.focus();
+}
+/* 파일을 읽고, 성공하면 ‘파일 변경’ 창을 닫는다 */
+async function registerFile(f){
+  if(await loadFile(f)) closeModal();
 }
 
 function renderMapping(){
@@ -891,10 +1360,7 @@ function renderMapping(){
 function renderGroups(){
   const n = S.groups.length;
   let stat = `엑셀 ${S.data.length}행 → 안건 <b>${S.items.length}건</b> · 유형 <b>${n}개</b>`;
-  const notes = [];
-  if(S.skipNo) notes.push(`안건번호가 비어 제외 ${S.skipNo}행`);
-  if(S.skipDup) notes.push(`중복 번호 제외 ${S.skipDup}행`);
-  if(notes.length) stat += ` <span>(${notes.join(', ')})</span>`;
+  if(S.skipNo) stat += ` <span>(안건번호가 비어 제외 ${S.skipNo}행)</span>`;
   $('#stat').innerHTML = stat;
   $('#groupBody').innerHTML = S.groups.map((g, i) => `
     <tr>
@@ -909,8 +1375,6 @@ function renderGroups(){
   $('#fmtSuffix').value = S.fmt.suffix;
   $('#fmtSep').value = S.fmt.sep;
   $('#fmtRange').checked = S.fmt.range;
-  $('#optDedupe').checked = S.fmt.dedupe;
-  $('#optFill').checked = S.fmt.fill;
 }
 
 function refreshNos(){
@@ -934,7 +1398,8 @@ function renderMeta(){
     </div>`).join('');
 }
 function renderChips(){
-  $('#chipsBasic').innerHTML = chip('{{총건수}}') + chip('{{유형수}}') +
+  $('#chipsBasic').innerHTML = chip('{{위원회명}}') + chip('{{차수}}') + chip('{{개최일자}}') +
+    chip('{{총건수}}') + chip('{{유형수}}') +
     S.meta.filter(m => m.k.trim()).map(m => chip('{{' + m.k.trim() + '}}')).join('') +
     chip('[쪽나눔]\n');
   $('#chipsBlock').innerHTML =
@@ -963,22 +1428,67 @@ function renderOutput(){
   w.hidden = !msgs.length;
 }
 
-/* ---------- 샘플 ---------- */
-function loadSample(){
-  hideErr();
-  const T = ['신규','변경','재심의','보고'];
-  const rows = [['안건번호','안건명','심의구분','소관부서','비고']];
-  const list = [
-    [1,'A사업 시행계획(안)',T[0],'기획과'],[2,'B시설 건립 계획(안)',T[0],'시설과'],[3,'C지구 정비 기본계획(안)',T[0],'도시과'],
-    [4,'D사업 규모 변경(안)',T[1],'기획과'],[5,'E계획 기간 조정(안)',T[1],'복지과'],[6,'F시설 용도 변경(안)',T[1],'시설과'],
-    [7,'G사업 추진방식(안)',T[0],'교통과'],[8,'H계획 보완사항 재심의',T[2],'도시과'],
-    [9,'I사업 추진현황 보고',T[3],'기획과'],[10,'J지구 조성 경과 보고',T[3],'도시과'],
-    [11,'K시설 운영 실적 보고',T[3],'시설과'],[12,'L계획 종합 보고',T[3],'복지과']
-  ];
-  list.forEach(r => rows.push([String(r[0]), r[1], r[2], r[3], '']));
-  S.buf = null; S.fileName = '샘플 데이터 (내장)'; S.sheetNames = ['샘플']; S.sheet = '샘플';
-  S.order = []; S.labels = {}; S.map = {no:'', title:'', type:''};
-  setRows(rows);
+/* ---------- 간사용명부: 심의사유별 안건 현황 ---------- */
+function renderRoster(){
+  const R = S.roster, box = $('#rosterBox'), err = $('#rosterErr');
+  err.hidden = !(R && R.error);
+  box.hidden = !(R && !R.error);
+  if(R && R.error) err.textContent = R.error;
+  if(!R || R.error) return;
+
+  // 요약 문장(시나리오에도 들어갈 내용): 심의사유별 건수 / 총 N개 안건, M개 의안
+  const sm = rosterSummary(R);
+  // 숫자와 ‘건’(쉼표 포함)은 한 덩어리(nw)로 묶어서 "1 / 건"으로 갈라지거나 쉼표가 줄 맨 앞에 오지 않게 한다
+  const last = sm.parts.length - 1;
+  $('#rosterSummary').innerHTML =
+    `<p>${sm.parts.length ? sm.parts.map((p, i) => `${esc(p.name)} <span class="nw"><b>${p.n}</b>건${i < last ? ',' : ''}</span>`).join(' ') : '심의사유로 분류된 의안이 없습니다.'}</p>` +
+    `<p><span class="nw">총 <b>${sm.types}</b>개 안건,</span> <span class="nw"><b>${sm.total}</b>개 의안입니다.</span></p>`;
+
+  // 요약 아래 알림: 사람이 확인해야 할 것(노란색)을 먼저, 참고(회색)를 뒤에
+  const alerts = [];
+  if(R.bad) alerts.push(['warn', `<b>분류 안 됨 ${R.bad}건</b> — 표의 ‘분류 안 됨’을 눌러 이유를 확인해 주세요. 위 건수에는 들어 있지 않습니다.`]);
+  if(R.warn) alerts.push(['warn', `<b>확인 필요 ${R.warn}건</b> — 심의사유에 인식하지 못한 글자가 섞여 있습니다. ‘건별 분류 내역’에서 확인해 주세요.`]);
+  sm.notes.forEach(n => alerts.push(['info', esc(n)]));
+  $('#rosterAlerts').innerHTML = alerts.map(([k, h]) => `<div class="alert ${k}">${h}</div>`).join('');
+
+  // 심의사유별 목록: 의안번호 · 심의사유 · 의사소견서
+  const noLabel = R.noHead ? '의안번호' : '엑셀 행';
+  const noVal = r => R.noHead ? (r.no || '-') : r.row;
+  const byCat = {};
+  R.rows.forEach(r => { const k = r.cat || '__bad'; (byCat[k] = byCat[k] || []).push(r); });
+  const listHtml = (rows, withWhy) => rows.length
+    ? `<div class="tbl-wrap tall"><table class="tbl-sm"><thead><tr><th>${noLabel}</th><th>심의사유</th><th>의사소견서</th>${withWhy ? '<th>근거</th>' : ''}</tr></thead><tbody>` +
+      rows.map(r => `<tr><td class="num">${esc(noVal(r))}</td><td class="wrap">${esc(r.reason)}</td><td>${esc(r.doc)}</td>${withWhy ? `<td>${esc(r.why)}</td>` : ''}</tr>`).join('') +
+      '</tbody></table></div>'
+    : '<div class="empty">해당하는 의안이 없습니다.</div>';
+  // 건수 옆 막대: 가장 많은 심의사유를 100%로 한 상대 크기(한눈에 비교용)
+  const maxN = Math.max(1, R.bad, ...ROSTER_CATS.map(c => (byCat[c] || []).length));
+  const catRow = (key, label, i, cls) => {
+    const rows = byCat[key] || [], open = S.rosterOpen.has(key) && rows.length > 0;
+    return `<tr class="cat ${cls || ''}"><td><button type="button" class="cat-btn" data-key="${esc(key)}" aria-expanded="${open}" aria-controls="rosterList${i}"${rows.length ? ' title="눌러서 의안 목록 보기"' : ' disabled'}>${esc(label)}</button></td>` +
+      `<td class="num cnt"><span class="bar" aria-hidden="true"><i style="width:${Math.round(rows.length / maxN * 100)}%"></i></span><span class="count">${rows.length}</span></td></tr>` +
+      `<tr class="cat-list" id="rosterList${i}"${open ? '' : ' hidden'}><td colspan="2">${listHtml(rows, key === '__bad')}</td></tr>`;
+  };
+  $('#rosterBody').innerHTML = ROSTER_CATS.map((c, i) => catRow(c, c, i)).join('') +
+    (R.bad ? catRow('__bad', '분류 안 됨 (확인 필요)', ROSTER_CATS.length, 'bad') : '') +
+    `<tr class="sum"><td>합계</td><td class="num cnt"><span class="count">${R.total}</span></td></tr>`;
+
+  // 건별 분류 내역 위의 참고 정보(눈에 덜 띄게 접어 둔 곳에 둔다)
+  const info = [];
+  if(R.multi) info.push(`사유가 여러 개 적힌 건 ${R.multi}건은 먼저 표기된 사유 한 곳에만 세었습니다.`);
+  const dv = Object.entries(R.docValues).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  info.push('의사소견서 값별 건수: ' + dv.map(([k, n]) => `${k} ${n}`).join(' · '));
+  $('#rosterInfo').innerHTML = info.map(n => `<div>${esc(n)}</div>`).join('');
+
+  // 건별 분류 내역(전체)
+  $('#rosterOnlyBad').checked = S.rosterOnlyBad;
+  const list = S.rosterOnlyBad ? R.rows.filter(r => !r.cat || r.warn) : R.rows;
+  const cols = R.noHead ? 6 : 5;
+  $('#rosterDetailHead').innerHTML = `<tr><th class="num">엑셀 행</th>${R.noHead ? '<th>의안번호</th>' : ''}<th>심의사유(원문)</th><th>의사소견서</th><th>분류</th><th>근거</th></tr>`;
+  $('#rosterDetail').innerHTML = list.map(r => `
+    <tr class="${r.cat ? (r.warn ? 'warnrow' : '') : 'bad'}"><td class="num">${r.row}</td>${R.noHead ? `<td>${esc(r.no || '-')}</td>` : ''}<td class="wrap">${esc(r.reason)}</td><td>${esc(r.doc)}</td>
+    <td>${r.cat ? esc(r.cat) : '분류 안 됨'}</td><td>${esc(r.why)}${r.warn ? `<div class="warn-text">${esc(r.warn)}</div>` : ''}</td></tr>`).join('') ||
+    `<tr><td colspan="${cols}" class="empty">${S.rosterOnlyBad ? '확인이 필요한 건이 없습니다.' : '표시할 건이 없습니다.'}</td></tr>`;
 }
 
 /* ---------- 복사 / 저장 ---------- */
@@ -1007,21 +1517,37 @@ function today(){ const d = new Date(); return d.getFullYear() + String(d.getMon
 
 /* ---------- 이벤트 ---------- */
 function bind(){
-  $('#file').addEventListener('change', e => { if(e.target.files[0]) loadFile(e.target.files[0]); e.target.value = ''; });
+  $('#file').addEventListener('change', e => { if(e.target.files[0]) registerFile(e.target.files[0]); e.target.value = ''; });
   const drop = $('#drop');
   ['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
   ['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
-  drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if(f) loadFile(f); });
+  drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if(f) registerFile(f); });
+  drop.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('#file').click(); } });
   ['dragover','drop'].forEach(t => window.addEventListener(t, e => e.preventDefault()));
-  $('#sample').addEventListener('click', loadSample);
 
-  $('#sheet').addEventListener('change', e => { S.order = []; S.labels = {}; loadSheet(e.target.value); });
-  $('#hrow').addEventListener('change', e => {
-    S.headerRow = Math.max(1, parseInt(e.target.value, 10) || 1);
-    buildData(); refreshAll();
+  // 파일 변경 창: 배지로 열고, ×·바깥 눌러서·Esc로 닫는다. Tab 키는 창 안에서만 돈다.
+  const modal = $('#uploadModal');
+  $('#fileBadge').addEventListener('click', openModal);
+  $('#modalClose').addEventListener('click', closeModal);
+  modal.addEventListener('mousedown', e => { if(e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+  modal.addEventListener('keydown', e => {
+    if(e.key !== 'Tab') return;
+    const f = [$('#modalClose'), $('#drop')], i = f.indexOf(document.activeElement);
+    if(e.shiftKey && i <= 0){ e.preventDefault(); f[f.length - 1].focus(); }
+    else if(!e.shiftKey && (i < 0 || i === f.length - 1)){ e.preventDefault(); f[0].focus(); }
   });
-  $('#optFill').addEventListener('change', e => { S.fmt.fill = e.target.checked; save(); if(S.buf) loadSheet(S.sheet); });
-  $('#optDedupe').addEventListener('change', e => { S.fmt.dedupe = e.target.checked; save(); analyze(); refreshAll(); });
+
+  $('#rosterOnlyBad').addEventListener('change', e => { S.rosterOnlyBad = e.target.checked; renderRoster(); });
+  // 심의사유 줄을 누르면 해당 안건 목록을 펼치고, 다시 누르면 접는다
+  $('#rosterBody').addEventListener('click', e => {
+    const tr = e.target.closest('tr.cat'); if(!tr) return;
+    const b = tr.querySelector('.cat-btn'); if(!b || b.disabled) return;
+    const open = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', String(open));
+    document.getElementById(b.getAttribute('aria-controls')).hidden = !open;
+    if(open) S.rosterOpen.add(b.dataset.key); else S.rosterOpen.delete(b.dataset.key);
+  });
 
   [['#mapNo','no'],['#mapTitle','title'],['#mapType','type']].forEach(([sel, k]) =>
     $(sel).addEventListener('change', e => { S.map[k] = e.target.value; analyze(); refreshAll(); }));
@@ -1080,7 +1606,7 @@ function bind(){
     const f = e.target.files[0]; e.target.value = ''; if(!f) return;
     try{
       applySettings(JSON.parse(await f.text()));
-      save(); tpl.value = S.template; renderMeta(); renderDocOpts(); renderGroups(); renderChips(); renderOutput();
+      save(); tpl.value = S.template; renderMeta(); renderInfo(); renderDocOpts(); renderGroups(); renderChips(); renderOutput();
     }catch(err){ alert('틀 파일을 읽지 못했습니다. 이 프로그램에서 내보낸 .json 파일인지 확인해 주세요.'); }
   });
 
@@ -1098,6 +1624,126 @@ function bind(){
   $('#docFont').addEventListener('change', e => { S.doc.font = e.target.value; save(); });
   $('#docSize').addEventListener('change', e => { S.doc.size = parseFloat(e.target.value); save(); });
   $('#docPageNo').addEventListener('change', e => { S.doc.pageNo = e.target.checked; save(); });
+
+  /* 1번 카드: 회의 정보 */
+  const infoChanged = () => { renderInfoPreview(); renderOutput(); };
+  $('#infoRegion').addEventListener('input', e => { S.info.region = e.target.value; save(); infoChanged(); });
+  $('#infoLevel').addEventListener('click', e => {
+    const b = e.target.closest('button[data-level]'); if(!b) return;
+    S.info.level = S.info.level === b.dataset.level ? '' : b.dataset.level;   // 선택된 버튼을 다시 누르면 해제
+    save(); renderInfo(); renderOutput();
+  });
+  const round = $('#infoRound');
+  const cleanRound = () => {
+    const c = round.value.normalize('NFKC').replace(/\D/g, '').slice(0, 2);   // 전각 숫자는 반각으로, 숫자 외는 제거
+    if(c !== round.value) round.value = c;
+    S.info.round = c;
+  };
+  round.addEventListener('input', e => { if(e.isComposing) return; cleanRound(); infoChanged(); });
+  round.addEventListener('compositionend', () => { cleanRound(); infoChanged(); });
+  round.addEventListener('change', () => {   // "05" → "5", "0"/"00" → 빈칸
+    const n = parseInt(round.value, 10);
+    round.value = S.info.round = n > 0 ? String(n) : '';
+    infoChanged();
+  });
+  bindDateField(infoChanged);
+}
+
+/* ---------- 개최일자: 손으로 숫자 8자리(yyyymmdd) 입력 + 달력 선택 ---------- */
+function fmtDateDigits(d){   // 숫자만 → 입력한 만큼 yyyy-mm-dd 로 자리를 잡아준다
+  return d.length <= 4 ? d : d.length <= 6 ? d.slice(0, 4) + '-' + d.slice(4) : d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6);
+}
+function isoFromDigits(d){   // 8자리 숫자가 실제로 있는 날짜일 때만 'YYYY-MM-DD', 아니면 ''
+  if(d.length !== 8) return '';
+  const y = +d.slice(0, 4), m = +d.slice(4, 6), day = +d.slice(6, 8), t = new Date(y, m - 1, day);
+  if(y < 1900 || y > 2100 || t.getFullYear() !== y || t.getMonth() !== m - 1 || t.getDate() !== day) return '';
+  return fmtDateDigits(d);
+}
+function digitsFromPasted(text){   // "2026.1.8." "2026-1-8" 처럼 붙여넣은 글에서 8자리를 뽑는다
+  const s = text.normalize('NFKC'), m = /^\s*(\d{4})\D+(\d{1,2})\D+(\d{1,2})\D*$/.exec(s);
+  return (m ? m[1] + m[2].padStart(2, '0') + m[3].padStart(2, '0') : s.replace(/\D/g, '')).slice(0, 8);
+}
+function bindDateField(infoChanged){
+  const dt = $('#infoDate'), pick = $('#infoDatePick'), hint = $('#infoDateHint');
+  const setHint = t => { hint.textContent = t; dt.setAttribute('aria-invalid', String(!!t)); };
+  const apply = digits => {   // 상태에 반영하고, 칸에 보여줄 글자를 돌려준다
+    S.info.date = isoFromDigits(digits);
+    pick.value = S.info.date;
+    setHint(digits.length === 8 && !S.info.date ? '존재하지 않는 날짜입니다. 연·월·일을 확인해 주세요.' : '');
+    return fmtDateDigits(digits);
+  };
+  dt.addEventListener('input', e => {
+    if(e.isComposing) return;
+    const raw = dt.value.normalize('NFKC');
+    let digits = raw.replace(/\D/g, '');
+    // 구분 기호를 직접 친 경우: "2026-1-" → 2026-01, "2026-10-8-" → 2026-10-08
+    if(/\D$/.test(raw) && (digits.length === 5 || digits.length === 7)) digits = digits.slice(0, -1) + '0' + digits.slice(-1);
+    digits = digits.slice(0, 8);
+    const f = apply(digits);
+    if(dt.value !== f){
+      const caret = dt.selectionStart, atEnd = caret >= dt.value.length;
+      const before = dt.value.slice(0, caret).replace(/\D/g, '').length;
+      dt.value = f;
+      if(!atEnd){   // 중간을 고치는 중이면 커서를 같은 숫자 뒤에 둔다
+        let n = 0, pos = 0;
+        while(pos < f.length && n < before){ if(/\d/.test(f[pos])) n++; pos++; }
+        dt.setSelectionRange(pos, pos);
+      }
+    }
+    infoChanged();
+  });
+  dt.addEventListener('paste', e => {
+    e.preventDefault();
+    dt.value = apply(digitsFromPasted((e.clipboardData || window.clipboardData).getData('text')));
+    infoChanged();
+  });
+  dt.addEventListener('blur', () => {
+    if(dt.value && !S.info.date && !hint.textContent) setHint('연·월·일 8자리를 끝까지 입력해 주세요. (예: 20261008)');
+  });
+  $('#infoCal').addEventListener('click', () => {
+    pick.value = S.info.date;
+    try{ pick.showPicker(); }catch(err){ pick.focus(); pick.click(); }
+  });
+  pick.addEventListener('change', () => {
+    S.info.date = pick.value;
+    dt.value = pick.value;
+    setHint('');
+    infoChanged();
+  });
+}
+
+function renderInfo(){
+  $('#infoRegion').value = S.info.region;
+  $('#infoRound').value = S.info.round;
+  $('#infoDate').value = $('#infoDatePick').value = S.info.date;
+  $('#infoDateHint').textContent = '';
+  $('#infoDate').removeAttribute('aria-invalid');
+  document.querySelectorAll('#infoLevel button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.level === S.info.level)));
+  renderInfoPreview();
+}
+/* 표지 제목이 한 줄에 안 들어가면 그만큼 글자 크기를 줄인다(글자 폭은 크기에 비례하므로 한 번에 맞는다) */
+function fitCoverTitle(){
+  const t = $('#coverTitle');
+  t.style.removeProperty('--t');
+  const base = parseFloat(getComputedStyle(t).getPropertyValue('--t'));
+  const over = t.scrollWidth / t.clientWidth;
+  if(over > 1) t.style.setProperty('--t', Math.max(2.5, base / over * 0.97).toFixed(2));
+}
+
+/* 표지 미리보기: 왼쪽 위 "<회의 시나리오>" / "제0차 00구 등급판정위원회" / 빈 한 줄 / 개최일 / 아래 가운데 "00운영센터".
+   아직 입력 안 한 부분은 회색 자리표시 */
+function renderInfoPreview(){
+  const v = infoValues(), region = S.info.region.trim(), level = S.info.level;
+  const ph = t => `<span class="ph">${t}</span>`;
+  const place = region ? esc(region + level) : ph('00' + (level || '시·군·구'));
+  $('#coverTitle').innerHTML = (v.차수 ? `제${v.차수}차` : `제${ph('0')}차`) + ' ' + place + ' 등급판정위원회';
+  $('#coverDate').innerHTML = v.개최일자 ? esc(v.개최일자) : ph('0000년 0월 0일');
+  $('#coverFoot').innerHTML = (region ? esc(region) : ph('00')) + '운영센터';   // 지역명만(시·군·구 제외)
+  fitCoverTitle();
+  const notes = [];
+  if(region && !level) notes.push('시·군·구를 선택하지 않았습니다.');
+  if(level && region.endsWith(level)) notes.push(`지역명 끝에 이미 ‘${esc(level)}’가 있어 ‘${esc(region + level)}’로 들어갑니다.`);
+  $('#coverNote').innerHTML = notes.map(n => `<div>${n}</div>`).join('');
 }
 
 function renderDocOpts(){
@@ -1187,6 +1833,7 @@ renderFx();
 restore();
 $('#tpl').value = S.template;
 renderMeta();
+renderInfo();
 renderDocOpts();
 bind();
 refreshAll();
